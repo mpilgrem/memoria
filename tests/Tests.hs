@@ -19,10 +19,8 @@ import qualified Data.ByteArray.Parse    as Parse
 
 import qualified SipHash
 
-#ifdef WITH_BASEMENT_SUPPORT
 import           Basement.Block (Block)
 import           Basement.UArray (UArray)
-#endif
 
 newtype Positive = Positive Word
   deriving (Show, Eq, Ord)
@@ -30,12 +28,10 @@ instance Arbitrary Positive where
     arbitrary = Positive <$> between (0, 255)
 
 data Backend = BackendByte | BackendScrubbedBytes
-#ifdef WITH_BASEMENT_SUPPORT
 #if MIN_VERSION_basement(0,0,5)
     | BackendBlock
 #endif
     | BackendUArray
-#endif
     deriving (Show,Eq,Bounded,Enum)
 
 allBackends :: NonEmpty [Backend]
@@ -49,12 +45,10 @@ arbitraryBS n = do
     case backend of
         BackendByte          -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen Bytes)
         BackendScrubbedBytes -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen ScrubbedBytes)
-#ifdef WITH_BASEMENT_SUPPORT
 #if MIN_VERSION_basement(0,0,5)
         BackendBlock         -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen (Block Word8))
 #endif
         BackendUArray        -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen (UArray Word8))
-#endif
 
 arbitraryBSof :: Word -> Word -> Gen ArbitraryBS
 arbitraryBSof minBytes maxBytes = between (minBytes, maxBytes) >>= arbitraryBS
@@ -79,10 +73,8 @@ testGroupBackends x l =
     Group x
         [ Group "Bytes" (l withBytesWitness)
         , Group "ScrubbedBytes" (l withScrubbedBytesWitness)
-#ifdef WITH_BASEMENT_SUPPORT
         , Group "Block" (l withBlockWitness)
         , Group "UArray" (l withUArrayWitness)
-#endif
         ]
 
 testShowProperty :: IsProperty a
@@ -217,9 +209,7 @@ main = defaultMain $ Group "memory"
         ]
     , testShowProperty "showing" $ \witnessID expectedShow (Words8 l) ->
           (show . witnessID . B.pack $ l) == expectedShow l
-#ifdef WITH_BASEMENT_SUPPORT
     , testFoundationTypes
-#endif
     ]
   where
     basicProperties witnessID =
@@ -274,7 +264,6 @@ main = defaultMain $ Group "memory"
              in B.span (const False) b == (B.empty, b)
         ]
 
-#ifdef WITH_BASEMENT_SUPPORT
 testFoundationTypes = Group "Basement"
   [ CheckPlan "allocRet 4 _ :: UArray Int8 === 4" $ do
       x <- pick "allocateRet 4 _" $ (B.length :: UArray Int8 -> Int) . snd <$> B.allocRet 4 (const $ return ())
@@ -289,4 +278,3 @@ testFoundationTypes = Group "Basement"
       x <- pick "allocateRet 4 _" $ (B.length :: UArray Int64 -> Int) . snd <$> B.allocRet 4 (const $ return ())
       validate "8 === x" $ x === 8
   ]
-#endif

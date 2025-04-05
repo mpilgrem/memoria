@@ -75,8 +75,6 @@ instance ByteArray Bytestring.ByteString where
         return (r, Bytestring.PS fptr 0 sz)
 #endif
 
-#ifdef WITH_BASEMENT_SUPPORT
-
 baseBlockRecastW8 :: Base.PrimType ty => Block.Block ty -> Block.Block Word8
 baseBlockRecastW8 = Block.unsafeCast -- safe with Word8 destination
 
@@ -129,5 +127,3 @@ sizeRecastBytes w p = Base.CountOf $
      in q + (if r == 0 then 0 else 1)
   where !(Base.CountOf szTy) = Base.primSizeInBytes p
 {-# INLINE [1] sizeRecastBytes #-}
-
-#endif
