@@ -21,12 +21,8 @@ import           GHC.Word
 #if MIN_VERSION_base(4,15,0)
 import           GHC.Exts (unsafeCoerce#)
 #endif
-#if MIN_VERSION_base(4,9,0)
 import           Data.Semigroup
 import           Data.Foldable (toList)
-#else
-import           Data.Monoid
-#endif
 import           Data.String (IsString(..))
 import           Data.Typeable
 import           Data.Memory.PtrMethods
@@ -55,17 +51,11 @@ instance Eq ScrubbedBytes where
     (==) = scrubbedBytesEq
 instance Ord ScrubbedBytes where
     compare = scrubbedBytesCompare
-#if MIN_VERSION_base(4,9,0)
 instance Semigroup ScrubbedBytes where
     b1 <> b2      = unsafeDoIO $ scrubbedBytesAppend b1 b2
     sconcat       = unsafeDoIO . scrubbedBytesConcat . toList
-#endif
 instance Monoid ScrubbedBytes where
     mempty        = unsafeDoIO (newScrubbedBytes 0)
-#if !(MIN_VERSION_base(4,11,0))
-    mappend b1 b2 = unsafeDoIO $ scrubbedBytesAppend b1 b2
-    mconcat       = unsafeDoIO . scrubbedBytesConcat
-#endif
 instance NFData ScrubbedBytes where
     rnf b = b `seq` ()
 instance NormalForm ScrubbedBytes where
@@ -100,19 +90,11 @@ newScrubbedBytes (I# sz)
          in case scrubBytes s of
                 (# s', _ #) -> s'
 
-#if __GLASGOW_HASKELL__ >= 800
     finalize :: (State# RealWorld -> State# RealWorld) -> ScrubbedBytes -> State# RealWorld -> (# State# RealWorld, () #)
     finalize scrubber mba@(ScrubbedBytes _) = \s1 ->
         case scrubber s1 of
             s2 -> case touch# mba s2 of
                     s3 -> (# s3, () #)
-#else
-    finalize :: (State# RealWorld -> State# RealWorld) -> ScrubbedBytes -> IO ()
-    finalize scrubber mba@(ScrubbedBytes _) = IO $ \s1 -> do
-        case scrubber s1 of
-            s2 -> case touch# mba s2 of
-                    s3 -> (# s3, () #)
-#endif
 
 scrubbedBytesAllocRet :: Int -> (Ptr p -> IO a) -> IO (a, ScrubbedBytes)
 scrubbedBytesAllocRet sz f = do

@@ -85,9 +85,6 @@ instance Applicative (Parser byteArray) where
     pure v    = Parser $ \buf _ ok -> ok buf v
     (<*>) d e = d >>= \b -> e >>= \a -> return (b a)
 instance Monad (Parser byteArray) where
-#if !(MIN_VERSION_base(4,13,0))
-    fail          = Fail.fail
-#endif
     return        = pure
     m >>= k       = Parser $ \buf err ok ->
          runParser m buf err (\buf' a -> runParser (k a) buf' err ok)
@@ -248,7 +245,7 @@ skip n = Parser $ \buf err ok ->
 -- | Skip bytes while the @predicate hold from the current position in the stream
 skipWhile :: ByteArray byteArray => (Word8 -> Bool) -> Parser byteArray ()
 skipWhile p = Parser $ \buf err ok ->
-    let (_, b2) = B.span p buf 
+    let (_, b2) = B.span p buf
      in if B.null b2
             then runParser (getMore >> skipWhile p) B.empty err ok
             else ok b2 ()
