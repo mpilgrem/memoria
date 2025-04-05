@@ -28,9 +28,7 @@ instance Arbitrary Positive where
     arbitrary = Positive <$> between (0, 255)
 
 data Backend = BackendByte | BackendScrubbedBytes
-#if MIN_VERSION_basement(0,0,5)
     | BackendBlock
-#endif
     | BackendUArray
     deriving (Show,Eq,Bounded,Enum)
 
@@ -45,9 +43,7 @@ arbitraryBS n = do
     case backend of
         BackendByte          -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen Bytes)
         BackendScrubbedBytes -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen ScrubbedBytes)
-#if MIN_VERSION_basement(0,0,5)
         BackendBlock         -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen (Block Word8))
-#endif
         BackendUArray        -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen (UArray Word8))
 
 arbitraryBSof :: Word -> Word -> Gen ArbitraryBS

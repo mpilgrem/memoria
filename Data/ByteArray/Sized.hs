@@ -79,12 +79,10 @@ import Data.Proxy (Proxy(..))
 import Data.ByteArray.Types (ByteArrayAccess(..), ByteArray)
 import qualified Data.ByteArray.Types as ByteArray (allocRet)
 
-#if MIN_VERSION_basement(0,0,7)
 import           Basement.BlockN (BlockN)
 import qualified Basement.BlockN as BlockN
 import qualified Basement.PrimType as Base
 import           Basement.Types.OffsetSize (Countable)
-#endif
 
 -- | Type class to emulate exactly the behaviour of 'ByteArray' but with
 -- a known length at compile time
@@ -129,7 +127,6 @@ instance (KnownNat n, ByteArray ba) => ByteArrayN n (SizedByteArray n ba) where
       where
         n = fromInteger $ natVal p
 
-#if MIN_VERSION_basement(0,0,7)
 instance ( ByteArrayAccess (BlockN n ty)
          , PrimType ty
          , KnownNat n
@@ -142,7 +139,6 @@ instance ( ByteArrayAccess (BlockN n ty)
         a   <- BlockN.withMutablePtrHint True False mba (f . castPtr)
         ba  <- BlockN.freeze mba
         return (a, ba)
-#endif
 
 
 -- | Allocate a new bytearray of specific size, and run the initializer on this memory
