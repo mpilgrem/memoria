@@ -1,5 +1,5 @@
-Name:                memory
-version:             0.18.0
+Name:                memoria
+version:             0.18.1
 Synopsis:            memory and related abstraction stuff
 Description:
     Chunk of memory, polymorphic byte array management and manipulation
@@ -19,18 +19,18 @@ License:             BSD3
 License-file:        LICENSE
 Copyright:           Vincent Hanquez <vincent@snarc.org>
 Author:              Vincent Hanquez <vincent@snarc.org>
-Maintainer:          vincent@snarc.org, Nicolas Di Prima <nicolas@primetype.co.uk>
+Maintainer:          public@pilgrem.com
 Category:            memory
 Stability:           experimental
 Build-Type:          Simple
-Homepage:            https://github.com/vincenthz/hs-memory
-Bug-Reports:         https://github.com/vincenthz/hs-memory/issues
+Homepage:            https://github.com/mpilgrem/memoria
+Bug-Reports:         https://github.com/mpilgrem/memoria/issues
 cabal-version:       1.18
 extra-doc-files:     README.md CHANGELOG.md
 
 source-repository head
   type: git
-  location: https://github.com/vincenthz/hs-memory
+  location: https://github.com/mpilgrem/memoria
 
 Flag support_bytestring
   Description:       add non-orphan bytearray support for bytestring
@@ -111,7 +111,7 @@ Test-Suite test-memory
   else
     build-depends:   base
   Build-Depends:     bytestring
-                   , memory
+                   , memoria
                    , basement >= 0.0.7
                    , foundation
   ghc-options:       -Wall -fno-warn-orphans -fno-warn-missing-signatures -threaded

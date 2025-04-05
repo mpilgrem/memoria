@@ -1,9 +1,11 @@
-memory
-======
+memoria
+=======
 
 [![Build Status](https://travis-ci.org/vincenthz/hs-memory.png?branch=master)](https://travis-ci.org/vincenthz/hs-memory)
 [![BSD](http://b.repl.ca/v1/license-BSD-blue.png)](http://en.wikipedia.org/wiki/BSD_licenses)
 [![Haskell](http://b.repl.ca/v1/language-haskell-lightgrey.png)](http://haskell.org)
+
+Originally forked from [`memory-0.18.0`](https://hackage.haskell.org/package/memory-0.18.0).
 
 Documentation: [memory on hackage](http://hackage.haskell.org/package/memory)
 
@@ -38,3 +40,12 @@ Support
 -------
 
 See [Haskell packages guidelines](https://github.com/vincenthz/haskell-pkg-guidelines/blob/master/README.md#support)
+
+History
+-------
+
+The [`memory`](https://hackage.haskell.org/package/memory) package was
+originated and then maintained by Vincent Hanquez. Nicholas Di Prima joined as
+a co-maintainer from version 0.14.6. For published reasons, they do not intend
+to develop the package further after version 0.18.0 but Vincent Hanquez also
+does not want to introduce other maintainers.

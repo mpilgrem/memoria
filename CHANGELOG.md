@@ -1,3 +1,15 @@
+Change log for `memoria`
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to the
+[Haskell Package Versioning Policy](https://pvp.haskell.org/).
+
+## UNRELEASED
+
+* Rename `memory` package as `memoria`.
+
 ## 0.18
 
 * drop support for ghc < 8.8
