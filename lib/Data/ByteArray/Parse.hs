@@ -13,6 +13,7 @@
 -- > ParseOK "est" ("xx", 116)
 --
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Data.ByteArray.Parse
@@ -115,7 +116,7 @@ parseFeed feeder p initial = loop $ parse p initial
 -- | Run a Parser on a ByteString and return a 'Result'
 parse :: ByteArrayAccess byteArray
       => Parser byteArray a -> byteArray -> Result byteArray a
-parse p s = runParser p s (\_ msg -> ParseFail msg) (\b a -> ParseOK b a)
+parse p s = runParser p s (\_ msg -> ParseFail msg) ParseOK
 
 ------------------------------------------------------------
 
@@ -123,8 +124,7 @@ parse p s = runParser p s (\_ msg -> ParseFail msg) (\b a -> ParseOK b a)
 -- to the current buffer. if no further data, then
 -- the err callback is called.
 getMore :: ByteArray byteArray => Parser byteArray ()
-getMore = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
-    case nextChunk of
+getMore = Parser $ \buf err ok -> ParseMore $ \case
         Nothing -> err buf "EOL: need more data"
         Just nc
             | B.null nc -> runParser getMore buf err ok
@@ -135,8 +135,7 @@ getMore = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
 --
 -- getAll cannot fail.
 getAll :: ByteArray byteArray => Parser byteArray ()
-getAll = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
-    case nextChunk of
+getAll = Parser $ \buf err ok -> ParseMore $ \case
         Nothing -> ok buf ()
         Just nc -> runParser getAll (B.append buf nc) err ok
 
@@ -145,8 +144,7 @@ getAll = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
 --
 -- flushAll cannot fail.
 flushAll :: ByteArray byteArray => Parser byteArray ()
-flushAll = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
-    case nextChunk of
+flushAll = Parser $ \buf err ok -> ParseMore $ \case
         Nothing -> ok buf ()
         Just _  -> runParser flushAll B.empty err ok
 
@@ -154,8 +152,7 @@ flushAll = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
 hasMore :: ByteArray byteArray => Parser byteArray Bool
 hasMore = Parser $ \buf err ok ->
     if B.null buf
-        then ParseMore $ \nextChunk ->
-                case nextChunk of
+        then ParseMore $ \case
                     Nothing -> ok buf False
                     Just nc -> runParser hasMore nc err ok
         else ok buf True

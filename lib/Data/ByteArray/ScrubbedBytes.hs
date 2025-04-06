@@ -9,7 +9,6 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 module Data.ByteArray.ScrubbedBytes
     ( ScrubbedBytes
     ) where
@@ -24,7 +23,6 @@ import           GHC.Exts (unsafeCoerce#)
 import           Data.Semigroup
 import           Data.Foldable (toList)
 import           Data.String (IsString(..))
-import           Data.Typeable
 import           Data.Memory.PtrMethods
 import           Data.Memory.Internal.CompatPrim
 import           Data.Memory.Internal.Compat     (unsafeDoIO)
@@ -42,7 +40,6 @@ import           Basement.NormalForm
 -- * A Eq instance that is constant time
 --
 data ScrubbedBytes = ScrubbedBytes (MutableByteArray# RealWorld)
-  deriving (Typeable)
 
 instance Show ScrubbedBytes where
     show _ = "<scrubbed-bytes>"
@@ -91,7 +88,7 @@ newScrubbedBytes (I# sz)
                 (# s', _ #) -> s'
 
     finalize :: (State# RealWorld -> State# RealWorld) -> ScrubbedBytes -> State# RealWorld -> (# State# RealWorld, () #)
-    finalize scrubber mba@(ScrubbedBytes _) = \s1 ->
+    finalize scrubber mba@(ScrubbedBytes _) s1 =
         case scrubber s1 of
             s2 -> case touch# mba s2 of
                     s3 -> (# s3, () #)

@@ -60,10 +60,10 @@ fnv1a_64_Mix8 !w (FnvHash64 acc) = FnvHash64 (0x100000001b3 * (acc .^. integralU
 -- | compute FNV1 (32 bit variant) of a raw piece of memory
 fnv1 :: Ptr Word8 -> Int -> IO FnvHash32
 fnv1 (Ptr addr) n = loop (FnvHash32 0x811c9dc5) 0
-  where 
+  where
         loop :: FnvHash32 -> Int -> IO FnvHash32
         loop !acc !i
-            | i == n    = pure $ acc
+            | i == n    = pure acc
             | otherwise = do
                 v <- read8 addr i
                 loop (fnv1_32_Mix8 v acc) (i + 1)
@@ -71,10 +71,10 @@ fnv1 (Ptr addr) n = loop (FnvHash32 0x811c9dc5) 0
 -- | compute FNV1a (32 bit variant) of a raw piece of memory
 fnv1a :: Ptr Word8 -> Int -> IO FnvHash32
 fnv1a (Ptr addr) n = loop (FnvHash32 0x811c9dc5) 0
-  where 
+  where
         loop :: FnvHash32 -> Int -> IO FnvHash32
         loop !acc !i
-            | i == n    = pure $ acc
+            | i == n    = pure acc
             | otherwise = do
                 v <- read8 addr i
                 loop (fnv1a_32_Mix8 v acc) (i + 1)
@@ -82,10 +82,10 @@ fnv1a (Ptr addr) n = loop (FnvHash32 0x811c9dc5) 0
 -- | compute FNV1 (64 bit variant) of a raw piece of memory
 fnv1_64 :: Ptr Word8 -> Int -> IO FnvHash64
 fnv1_64 (Ptr addr) n = loop (FnvHash64 0xcbf29ce484222325) 0
-  where 
+  where
         loop :: FnvHash64 -> Int -> IO FnvHash64
         loop !acc !i
-            | i == n    = pure $ acc
+            | i == n    = pure acc
             | otherwise = do
                 v <- read8 addr i
                 loop (fnv1_64_Mix8 v acc) (i + 1)
@@ -93,10 +93,10 @@ fnv1_64 (Ptr addr) n = loop (FnvHash64 0xcbf29ce484222325) 0
 -- | compute FNV1a (64 bit variant) of a raw piece of memory
 fnv1a_64 :: Ptr Word8 -> Int -> IO FnvHash64
 fnv1a_64 (Ptr addr) n = loop (FnvHash64 0xcbf29ce484222325) 0
-  where 
+  where
         loop :: FnvHash64 -> Int -> IO FnvHash64
         loop !acc !i
-            | i == n    = pure $ acc
+            | i == n    = pure acc
             | otherwise = do
                 v <- read8 addr i
                 loop (fnv1a_64_Mix8 v acc) (i + 1)

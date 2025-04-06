@@ -8,7 +8,6 @@
 -- provide the SipHash algorithm.
 -- reference: <http://131002.net/siphash/siphash.pdf>
 --
-{-# LANGUAGE BangPatterns #-}
 module Data.ByteArray.Hash
     (
     -- * SipHash

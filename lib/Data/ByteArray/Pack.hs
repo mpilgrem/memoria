@@ -49,7 +49,7 @@ import qualified Data.ByteArray as B
 fill :: ByteArray byteArray => Int -> Packer a -> Either String byteArray
 fill len packing = unsafeDoIO $ do
     (val, out) <- B.allocRet len $ \ptr -> runPacker_ packing (MemView ptr len)
-    case val of 
+    case val of
         PackerMore _ (MemView _ r)
             | r == 0    -> return $ Right out
             | otherwise -> return $ Left ("remaining unpacked bytes " ++ show r ++ " at the end of buffer")
@@ -120,8 +120,7 @@ fillUpWith s = fillList $ repeat s
 -- > .. <.. not enough space ..>
 --
 fillList :: Storable storable => [storable] -> Packer ()
-fillList []     = return ()
-fillList (x:xs) = putStorable x >> fillList xs
+fillList = foldr ((>>) . putStorable) (return ())
 
 ------------------------------------------------------------------------------
 -- Common packer                                                            --

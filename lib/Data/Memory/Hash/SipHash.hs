@@ -9,7 +9,6 @@
 -- reference: <http://131002.net/siphash/siphash.pdf>
 --
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 module Data.Memory.Hash.SipHash
     ( SipKey(..)
     , SipHash(..)
@@ -21,7 +20,6 @@ import           Data.Memory.Endian
 import           Data.Memory.Internal.Compat
 import           Data.Word
 import           Data.Bits
-import           Data.Typeable (Typeable)
 import           Control.Monad
 import           Foreign.Ptr
 import           Foreign.Storable
@@ -31,7 +29,7 @@ data SipKey = SipKey {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64
 
 -- | Siphash tag value
 newtype SipHash = SipHash Word64
-    deriving (Show,Eq,Ord,Typeable)
+    deriving (Show, Eq, Ord)
 
 data InternalState = InternalState {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64
 

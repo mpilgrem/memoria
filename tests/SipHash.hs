@@ -1,15 +1,17 @@
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module SipHash (tests) where
 
-import           Imports
+import           Imports hiding ( String )
 import           Utils
 import qualified Data.ByteArray          as B
 import           Data.ByteArray.Hash (SipKey(..), SipHash(..), sipHash)
+import           Data.String ( String )
 
+katKey :: SipKey
 katKey = SipKey 0x0706050403020100 0x0f0e0d0c0b0a0908
 
+vectors :: [(SipKey, String, SipHash)]
 vectors =
     [ ( katKey
       , ""
@@ -269,9 +271,15 @@ vectors =
       )
     ]
 
+katTests ::
+     (B.ByteArray t, B.ByteArrayAccess ba)
+  => (t -> ba)
+  -> [(SipKey, String, SipHash)]
+  -> [Test]
 katTests witnessID v = makeTest <$> numberedList v
     where makeTest (i, (key,msg,tag)) = Property ("kat " <> show i) $ tag === sipHash key (witnessID $ B.pack $ unS msg)
 
+tests :: (B.ByteArray t, B.ByteArrayAccess ba) => (t -> ba) -> [Test]
 tests witnessID =
     [ Group "KAT" $ katTests witnessID vectors
     ]

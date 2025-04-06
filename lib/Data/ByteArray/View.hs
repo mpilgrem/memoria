@@ -47,11 +47,11 @@ instance ByteArrayAccess bytes => Ord (View bytes) where
                 _                           -> ret
 
 instance ByteArrayAccess bytes => Show (View bytes) where
-    showsPrec p v r = showsPrec p (viewUnpackChars v []) r
+    showsPrec p v = showsPrec p (viewUnpackChars v [])
 
 instance ByteArrayAccess bytes => ByteArrayAccess (View bytes) where
     length = viewSize
-    withByteArray v f = withByteArray (unView v) $ \ptr -> f (ptr `plusPtr` (viewOffset v))
+    withByteArray v f = withByteArray (unView v) $ \ptr -> f (ptr `plusPtr` viewOffset v)
 
 viewUnpackChars :: ByteArrayAccess bytes
                 => View bytes
@@ -70,11 +70,11 @@ viewUnpackChars v xs = chunkLoop 0
             bytesLoop idx (len - idx) xs
 
     bytesLoop :: Int -> Int -> [Char] -> [Char]
-    bytesLoop idx chunkLenM1 paramAcc =
-        loop (idx + chunkLenM1 - 1) paramAcc
+    bytesLoop idx chunkLenM1 =
+        loop (idx + chunkLenM1 - 1)
       where
         loop i acc
-            | i == idx  = (rChar i : acc)
+            | i == idx  = rChar i : acc
             | otherwise = loop (i - 1) (rChar i : acc)
 
     rChar :: Int -> Char
@@ -117,7 +117,7 @@ takeView :: ByteArrayAccess bytes
          => bytes -- ^ byte aray
          -> Int   -- ^ size of the view
          -> View bytes
-takeView b size = view b 0 size
+takeView b = view b 0
 
 -- | create a view from the given byte array
 -- starting after having dropped the fist n bytes

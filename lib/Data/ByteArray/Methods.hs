@@ -67,7 +67,7 @@ alloc n f
 
 -- | Allocate a new bytearray of specific size, and run the initializer on this memory
 create :: ByteArray ba => Int -> (Ptr p -> IO ()) -> IO ba
-create n f = alloc n f
+create = alloc
 
 -- | similar to 'alloc' but hide the allocation and initializer in a pure context
 allocAndFreeze :: ByteArray a => Int -> (Ptr p -> IO ()) -> a
@@ -106,7 +106,7 @@ unpack bs = loop 0
         loop i
             | i == len  = []
             | otherwise =
-                let !v = unsafeDoIO $ withByteArray bs (\p -> peekByteOff p i)
+                let !v = unsafeDoIO $ withByteArray bs (`peekByteOff` i)
                  in v : loop (i+1)
 
 -- | returns the first byte, and the remaining bytearray if the bytearray is not null
@@ -189,7 +189,7 @@ drop n bs
 span :: ByteArray bs => (Word8 -> Bool) -> bs -> (bs, bs)
 span pred bs
     | null bs   = (bs, bs)
-    | otherwise = let n = loop 0 in (take n bs, drop n bs)
+    | otherwise = let n = loop 0 in splitAt n bs
   where loop !i
             | i >= len          = len
             | pred (index bs i) = loop (i+1)

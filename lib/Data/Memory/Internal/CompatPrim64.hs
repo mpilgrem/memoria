@@ -12,9 +12,7 @@
 -- to write compat code for primitives
 --
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MagicHash #-}
-{-# LANGUAGE UnboxedTuples #-}
 #include "MachDeps.h"
 module Data.Memory.Internal.CompatPrim64
     ( Word64#
@@ -54,7 +52,9 @@ module Data.Memory.Internal.CompatPrim64
 #if WORD_SIZE_IN_BITS == 64
 import GHC.Prim hiding (Word64#, Int64#)
 
+#if __GLASGOW_HASKELL__ < 904
 type OutBool = Int#
+#endif
 
 type Word64# = Word#
 type Int64# = Int#

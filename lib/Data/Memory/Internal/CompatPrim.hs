@@ -12,7 +12,6 @@
 -- to write compat code for primitives
 --
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MagicHash #-}
 module Data.Memory.Internal.CompatPrim
     ( be32Prim
@@ -46,7 +45,7 @@ le32Prim = byteswap32Prim
 -- | Simple compatibility for byteswap the lower 32 bits of a Word#
 -- at the primitive level
 byteswap32Prim :: Word# -> Word#
-byteswap32Prim w = byteSwap32# w
+byteswap32Prim = byteSwap32#
 
 -- | Simple wrapper to handle pre 7.8 and future, where
 -- most comparaison functions don't returns a boolean

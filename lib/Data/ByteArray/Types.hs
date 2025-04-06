@@ -8,7 +8,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE Rank2Types    #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Data.ByteArray.Types
@@ -105,7 +104,7 @@ instance ByteArrayAccess Base.String where
         -- bytes. For @ByteArrayAccess@, because we are using an @Int@, we
         -- didn't see that we were returning the wrong @CountOf@.
         bytes = Base.toBytes Base.UTF8 str
-    withByteArray s f = withByteArray (Base.toBytes Base.UTF8 s) f
+    withByteArray s = withByteArray (Base.toBytes Base.UTF8 s)
 
 instance (Ord ty, Base.PrimType ty) => ByteArray (Block.Block ty) where
     allocRet sz f = do
