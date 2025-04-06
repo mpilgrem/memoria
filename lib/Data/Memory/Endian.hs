@@ -1,3 +1,6 @@
+{-# HLINT ignore "Use fewer imports" #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 -- |
 -- Module      : Data.Memory.Endian
 -- License     : BSD-style
