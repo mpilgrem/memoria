@@ -1,0 +1,2 @@
+snapshot: lts-22.43 # GHC 9.6.6
+compiler: ghc-9.6.7
