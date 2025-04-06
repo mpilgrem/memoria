@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-deprecations #-}
+
 -- |
 -- Module      : Data.ByteArray.ScrubbedBytes
 -- License     : BSD-style

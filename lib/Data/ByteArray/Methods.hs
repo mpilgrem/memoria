@@ -1,3 +1,6 @@
+{-# HLINT ignore all "Hoist not" #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 -- |
 -- Module      : Data.ByteArray.Methods
 -- License     : BSD-style

@@ -1,3 +1,6 @@
+{-# HLINT ignore booleanPrim "Eta reduce" #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 -- |
 -- Module      : Data.Memory.Internal.CompatPrim
 -- License     : BSD-style
