@@ -11,7 +11,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 module Data.ByteArray.Bytes
     ( Bytes
     ) where
@@ -31,17 +30,15 @@ import           Data.Memory.Internal.Imports
 import           Data.Memory.Internal.CompatPrim
 import           Data.Memory.Internal.Compat      (unsafeDoIO)
 import           Data.ByteArray.Types
-import           Data.Typeable
 
 import           Basement.NormalForm
 import           Basement.IntegralConv
 
 -- | Simplest Byte Array
 data Bytes = Bytes (MutableByteArray# RealWorld)
-  deriving (Typeable)
 
 instance Show Bytes where
-    showsPrec p b r = showsPrec p (bytesUnpackChars b []) r
+    showsPrec p b = showsPrec p (bytesUnpackChars b [])
 instance Eq Bytes where
     (==) = bytesEq
 instance Ord Bytes where
@@ -138,7 +135,7 @@ bytesEq b1@(Bytes m1) b2@(Bytes m2)
             case readWord8Array# m1 i s of
                 (# s', e1 #) -> case readWord8Array# m2 i s' of
                     (# s'', e2 #) ->
-                        if (W8# e1) == (W8# e2)
+                        if W8# e1 == W8# e2
                             then loop (i +# 1#) s''
                             else (# s'', False #)
     {-# INLINE loop #-}

@@ -10,7 +10,6 @@ import           Imports
 import           Foundation.Check.Main
 import           Utils
 import           Data.Char                    (chr)
-import           Data.Word
 import qualified Data.ByteString         as BS
 import           Data.ByteArray               (Bytes, ScrubbedBytes, ByteArray)
 import qualified Data.ByteArray          as B
@@ -20,7 +19,6 @@ import qualified Data.ByteArray.Parse    as Parse
 import qualified SipHash
 
 import           Basement.Block (Block)
-import           Basement.UArray (UArray)
 
 newtype Positive = Positive Word
   deriving (Show, Eq, Ord)
@@ -83,9 +81,10 @@ testShowProperty x p =
         , Property "ScrubbedBytes" (p withScrubbedBytesWitness showLikeEmptySB)
         ]
   where
-    showLikeString  l = show $ (chr . fromIntegral) <$> l
+    showLikeString  l = show $ chr . fromIntegral <$> l
     showLikeEmptySB _ = show (withScrubbedBytesWitness B.empty)
 
+base64Kats :: [(LString, LString)]
 base64Kats =
     [ ("pleasure.", "cGxlYXN1cmUu")
     , ("leasure.", "bGVhc3VyZS4=")
@@ -95,6 +94,7 @@ base64Kats =
     , ("", "")
     ]
 
+base64URLKats :: [(LString, LString)]
 base64URLKats =
     [ ("pleasure.", "cGxlYXN1cmUu")
     , ("leasure.", "bGVhc3VyZS4")
@@ -106,9 +106,11 @@ base64URLKats =
     , ("", "")
     ]
 
+base16Kats :: [(LString, LString)]
 base16Kats =
     [ ("this is a string", "74686973206973206120737472696e67") ]
 
+base32Kats :: [(LString, LString)]
 base32Kats =
     [ ("-pleasure.", "FVYGYZLBON2XEZJO")
     , ("pleasure.",  "OBWGKYLTOVZGKLQ=")
@@ -123,6 +125,10 @@ base32Kats =
     , ("",           "")
     ]
 
+encodingTests ::
+     (Show bin, Typeable bin, ByteArray bin, ByteArray t)
+  => (t -> bin)
+  -> [Test]
 encodingTests witnessID =
     [ Group "BASE64"
         [ Group "encode-KAT" encodeKats64
@@ -142,14 +148,14 @@ encodingTests witnessID =
         ]
     ]
   where
-        encodeKats64 = fmap (toTest B.Base64) $ zip [1..] base64Kats
-        decodeKats64 = fmap (toBackTest B.Base64) $ zip [1..] base64Kats
-        encodeKats32 = fmap (toTest B.Base32) $ zip [1..] base32Kats
-        decodeKats32 = fmap (toBackTest B.Base32) $ zip [1..] base32Kats
-        encodeKats16 = fmap (toTest B.Base16) $ zip [1..] base16Kats
-        decodeKats16 = fmap (toBackTest B.Base16) $ zip [1..] base16Kats
-        encodeKats64URLUnpadded = fmap (toTest B.Base64URLUnpadded) $ zip [1..] base64URLKats
-        decodeKats64URLUnpadded = fmap (toBackTest B.Base64URLUnpadded) $ zip [1..] base64URLKats
+        encodeKats64 = toTest B.Base64 <$> zip [1..] base64Kats
+        decodeKats64 = toBackTest B.Base64 <$> zip [1..] base64Kats
+        encodeKats32 = toTest B.Base32 <$> zip [1..] base32Kats
+        decodeKats32 = toBackTest B.Base32 <$> zip [1..] base32Kats
+        encodeKats16 = toTest B.Base16 <$> zip [1..] base16Kats
+        decodeKats16 = toBackTest B.Base16 <$> zip [1..] base16Kats
+        encodeKats64URLUnpadded = toTest B.Base64URLUnpadded <$> zip [1..] base64URLKats
+        decodeKats64URLUnpadded = toBackTest B.Base64URLUnpadded <$> zip [1..] base64URLKats
 
         toTest :: B.Base -> (Int, (LString, LString)) -> Test
         toTest base (i, (inp, out)) = Property (show i) $
@@ -163,6 +169,7 @@ encodingTests witnessID =
              in Right inpbs === outbs
 
 -- check not to touch internal null pointer of the empty ByteString
+bsNullEncodingTest :: Test
 bsNullEncodingTest =
     Group "BS-null"
       [ Group "BASE64"
@@ -184,6 +191,10 @@ bsNullEncodingTest =
     toBackTest base =
       B.convertFromBase base BS.empty === Right BS.empty
 
+parsingTests ::
+     (Typeable t1, ByteArray t2, ByteArray t1, Show t1)
+  => (t2 -> t1)
+  -> [Test]
 parsingTests witnessID =
     [ CheckPlan "parse" $
         let input = witnessID $ B.pack $ unS "xx abctest"
@@ -195,6 +206,7 @@ parsingTests witnessID =
                 _                               -> validate "unexpected result" False
     ]
 
+main :: IO ()
 main = defaultMain $ Group "memory"
     [ testGroupBackends "basic" basicProperties
     , bsNullEncodingTest
@@ -220,9 +232,9 @@ main = defaultMain $ Group "memory"
         , Property "Ord" $ \(Words8 l1) (Words8 l2) ->
             compare l1 l2 == compare (witnessID $ B.pack l1) (B.pack l2)
         , Property "Monoid(mappend)" $ \(Words8 l1) (Words8 l2) ->
-            mappend l1 l2 == (B.unpack $ mappend (witnessID $ B.pack l1) (B.pack l2))
+            mappend l1 l2 == B.unpack ( mappend (witnessID $ B.pack l1) (B.pack l2))
         , Property "Monoid(mconcat)" $ \(SmallList l) ->
-            mconcat (fmap unWords8 l) == (B.unpack $ mconcat $ fmap (witnessID . B.pack . unWords8) l)
+            mconcat (fmap unWords8 l) == B.unpack ( mconcat $ fmap (witnessID . B.pack . unWords8) l)
         , Property "append (append a b) c == append a (append b c)" $ \(Words8 la) (Words8 lb) (Words8 lc) ->
             let a = witnessID $ B.pack la
                 b = witnessID $ B.pack lb
@@ -260,6 +272,7 @@ main = defaultMain $ Group "memory"
              in B.span (const False) b == (B.empty, b)
         ]
 
+testFoundationTypes :: Test
 testFoundationTypes = Group "Basement"
   [ CheckPlan "allocRet 4 _ :: UArray Int8 === 4" $ do
       x <- pick "allocateRet 4 _" $ (B.length :: UArray Int8 -> Int) . snd <$> B.allocRet 4 (const $ return ())

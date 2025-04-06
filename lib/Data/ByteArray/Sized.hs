@@ -18,7 +18,6 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoStarIsType #-}
@@ -57,13 +56,13 @@ module Data.ByteArray.Sized
     , unsafeFromByteArrayAccess
     ) where
 
-import Basement.Imports
-import Basement.NormalForm
-import Basement.Nat
-import Basement.Numerical.Additive ((+))
-import Basement.Numerical.Subtractive ((-))
+import           Basement.Imports
+import           Basement.NormalForm
+import           Basement.Nat
+import           Basement.Numerical.Additive ((+))
+import           Basement.Numerical.Subtractive ((-))
 
-import Basement.Sized.List (ListN, unListN, toListN)
+import           Basement.Sized.List (ListN, unListN, toListN)
 
 import           Foreign.Storable
 import           Foreign.Ptr
@@ -72,15 +71,19 @@ import           Data.Maybe (fromMaybe)
 import           Data.Memory.Internal.Compat
 import           Data.Memory.PtrMethods
 
-import Data.Proxy (Proxy(..))
+import           Data.Proxy (Proxy(..))
 
-import Data.ByteArray.Types (ByteArrayAccess(..), ByteArray)
+import           Data.ByteArray.Types (ByteArrayAccess(..), ByteArray)
 import qualified Data.ByteArray.Types as ByteArray (allocRet)
+#if MIN_VERSION_base(4,17,0)
+import           Data.Type.Equality (type (~))
+#endif
 
 import           Basement.BlockN (BlockN)
 import qualified Basement.BlockN as BlockN
 import qualified Basement.PrimType as Base
 import           Basement.Types.OffsetSize (Countable)
+
 
 -- | Type class to emulate exactly the behaviour of 'ByteArray' but with
 -- a known length at compile time
@@ -95,7 +98,7 @@ class (ByteArrayAccess c, KnownNat n) => ByteArrayN (n :: Nat) c | c -> n where
 -- | Wrapper around any collection type with the size as type parameter
 --
 newtype SizedByteArray (n :: Nat) ba = SizedByteArray { unSizedByteArray :: ba }
-  deriving (Eq, Show, Typeable, Ord, NormalForm)
+  deriving (Eq, Show, Ord, NormalForm)
 
 -- | create a 'SizedByteArray' from the given 'ByteArrayAccess' if the
 -- size is the same as the target size.

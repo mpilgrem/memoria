@@ -11,8 +11,6 @@
 -- the "Data.ByteArray.Encoding" module.
 --
 {-# LANGUAGE MagicHash #-}
-{-# LANGUAGE UnboxedTuples #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE Rank2Types #-}
 module Data.Memory.Encoding.Base32
@@ -92,7 +90,7 @@ toBase32Per5Bytes (!i1, !i2, !i3, !i4, !i5) =
     -- 0000 0111 << 2 | 1100 0000 >> 6
     !o2 = ((i1 .&. 0x07) .<<. 2) .|. ((i2 .&. 0xC0) .>>. 6)
     -- 0011 1110 >> 1
-    !o3 = ((i2 .&. 0x3E) .>>. 1)
+    !o3 = (i2 .&. 0x3E) .>>. 1
     -- 0000 0001 << 4 | 1111 0000 >> 4
     !o4 = ((i2 .&. 0x01) .<<. 4) .|. ((i3 .&. 0xF0) .>>. 4)
     -- 0000 1111 << 1 | 1000 0000 >> 7

@@ -11,8 +11,6 @@
 -- the "Data.ByteArray.Encoding" module.
 --
 {-# LANGUAGE MagicHash         #-}
-{-# LANGUAGE UnboxedTuples     #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE Rank2Types        #-}
 module Data.Memory.Encoding.Base64
@@ -134,10 +132,10 @@ unBase64LengthUnpadded len = case r of
   where (q, r) = len `divMod` 4
 
 fromBase64OpenBSD :: Ptr Word8 -> Ptr Word8 -> Int -> IO (Maybe Int)
-fromBase64OpenBSD dst src len = fromBase64Unpadded rsetOpenBSD dst src len
+fromBase64OpenBSD = fromBase64Unpadded rsetOpenBSD
 
 fromBase64URLUnpadded :: Ptr Word8 -> Ptr Word8 -> Int -> IO (Maybe Int)
-fromBase64URLUnpadded dst src len = fromBase64Unpadded rsetURL dst src len
+fromBase64URLUnpadded = fromBase64Unpadded rsetURL
 
 fromBase64Unpadded :: (Word8 -> Word8) -> Ptr Word8 -> Ptr Word8 -> Int -> IO (Maybe Int)
 fromBase64Unpadded rset dst src len = loop 0 0
