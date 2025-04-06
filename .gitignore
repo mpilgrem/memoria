@@ -3,7 +3,10 @@
 *.tix
 *.mix
 dist
-.stack-work
 refs/
-stack.yaml.lock
 dist-newstyle/
+
+# The Haskell Stack-related
+.stack-work
+stack.yaml.lock
+stack-ghc-*.yaml.lock
