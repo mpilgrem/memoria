@@ -43,6 +43,7 @@ Flag support_deepseq
   Manual:            True
 
 Library
+  hs-source-dirs:    lib
   Exposed-modules:   Data.ByteArray
                      Data.ByteArray.Encoding
                      Data.ByteArray.Mapping
