@@ -1,4 +1,8 @@
 {-# OPTIONS_GHC -Wno-deprecations #-}
+{-# LANGUAGE BangPatterns  #-}
+{-# LANGUAGE CPP           #-}
+{-# LANGUAGE MagicHash     #-}
+{-# LANGUAGE UnboxedTuples #-}
 
 -- |
 -- Module      : Data.ByteArray.ScrubbedBytes
@@ -7,14 +11,11 @@
 -- Stability   : Stable
 -- Portability : GHC
 --
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE UnboxedTuples #-}
-{-# LANGUAGE CPP #-}
 module Data.ByteArray.ScrubbedBytes
-    ( ScrubbedBytes
-    ) where
+  ( ScrubbedBytes
+  ) where
 
+import           Basement.NormalForm ( NormalForm (..) )
 import           GHC.Types
 import           GHC.Prim
 import           GHC.Ptr
@@ -31,7 +32,6 @@ import           Data.Memory.Internal.Compat     (unsafeDoIO)
 import           Data.Memory.Internal.Imports
 import           Data.ByteArray.Types
 import           Foreign.Storable
-import           Basement.NormalForm
 
 -- | ScrubbedBytes is a memory chunk which have the properties of:
 --

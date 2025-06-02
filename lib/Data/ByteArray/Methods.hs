@@ -57,8 +57,8 @@ import qualified Prelude
 
 #if defined(WITH_BYTESTRING_SUPPORT)
 import qualified Data.ByteString as SPE (ByteString)
-import qualified Basement.UArray as SPE (UArray)
-import qualified Basement.Block  as SPE (Block)
+import qualified Basement.Block.Base  as SPE ( Block )
+import qualified Basement.UArray.Base as SPE ( UArray )
 #endif
 
 -- | Allocate a new bytearray of specific size, and run the initializer on this memory

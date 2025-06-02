@@ -1,3 +1,19 @@
+{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE FunctionalDependencies     #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE NoStarIsType               #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE UndecidableInstances       #-}
+
 -- |
 -- Module      : Data.ByteArray.Sized
 -- License     : BSD-style
@@ -5,23 +21,6 @@
 -- Stability   : stable
 -- Portability : Good
 --
-
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE NoStarIsType #-}
-
 module Data.ByteArray.Sized
     ( ByteArrayN(..)
     , SizedByteArray
@@ -56,13 +55,18 @@ module Data.ByteArray.Sized
     , unsafeFromByteArrayAccess
     ) where
 
-import           Basement.Imports
-import           Basement.NormalForm
+import           Basement.Sized.Block ( BlockN )
+import qualified Basement.Sized.Block as BlockN ( freeze, new, withMutablePtrHint )
 import           Basement.Nat
-import           Basement.Numerical.Additive ((+))
-import           Basement.Numerical.Subtractive ((-))
-
-import           Basement.Sized.List (ListN, unListN, toListN)
+                   ( KnownNat, Nat, NatWithinBound, type (*), type (<=)
+                   , type (+), natVal
+                   )
+import           Basement.NormalForm ( NormalForm )
+import           Basement.Numerical.Additive ( (+) )
+import           Basement.Numerical.Subtractive ( (-) )
+import           Basement.PrimType ( PrimType (..) )
+import           Basement.Sized.List ( ListN, unListN, toListN )
+import           Basement.Types.OffsetSize ( Countable )
 
 import           Foreign.Storable
 import           Foreign.Ptr
@@ -78,12 +82,12 @@ import qualified Data.ByteArray.Types as ByteArray (allocRet)
 #if MIN_VERSION_base(4,17,0)
 import           Data.Type.Equality (type (~))
 #endif
-
-import           Basement.BlockN (BlockN)
-import qualified Basement.BlockN as BlockN
-import qualified Basement.PrimType as Base
-import           Basement.Types.OffsetSize (Countable)
-
+import           Data.Word ( Word8 )
+import           Prelude
+                   ( Bool (..), Eq (..), IO, Int, Maybe (..), Num (fromInteger), Ord
+                   , Show, ($), (.), (<$>), (>>), error, min, otherwise, pure
+                   , return, snd
+                   )
 
 -- | Type class to emulate exactly the behaviour of 'ByteArray' but with
 -- a known length at compile time
@@ -133,7 +137,7 @@ instance ( ByteArrayAccess (BlockN n ty)
          , KnownNat n
          , Countable ty n
          , KnownNat nbytes
-         , nbytes ~ (Base.PrimSize ty * n)
+         , nbytes ~ (PrimSize ty * n)
          ) => ByteArrayN nbytes (BlockN n ty) where
     allocRet _ f = do
         mba <- BlockN.new @n

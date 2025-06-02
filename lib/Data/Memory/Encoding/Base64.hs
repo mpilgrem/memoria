@@ -1,3 +1,7 @@
+{-# LANGUAGE MagicHash    #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE Rank2Types   #-}
+
 -- |
 -- Module      : Data.Memory.Encoding.Base64
 -- License     : BSD-style
@@ -10,9 +14,6 @@
 -- If you just want to encode or decode some bytes, you probably want to use
 -- the "Data.ByteArray.Encoding" module.
 --
-{-# LANGUAGE MagicHash         #-}
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE Rank2Types        #-}
 module Data.Memory.Encoding.Base64
     ( toBase64
     , toBase64URL
@@ -26,8 +27,8 @@ module Data.Memory.Encoding.Base64
 
 import           Data.Memory.Internal.Compat
 import           Data.Memory.Internal.Imports
-import           Basement.Bits
-import           Basement.IntegralConv (integralUpsize)
+import           Basement.Bits ( BitOps (..) )
+import           Basement.IntegralConv ( IntegralUpsize (..) )
 import           GHC.Prim
 import           GHC.Word
 import           Foreign.Storable

@@ -1,4 +1,8 @@
 {-# OPTIONS_GHC -Wno-deprecations #-}
+{-# LANGUAGE BangPatterns  #-}
+{-# LANGUAGE CPP           #-}
+{-# LANGUAGE MagicHash     #-}
+{-# LANGUAGE UnboxedTuples #-}
 
 -- |
 -- Module      : Data.ByteArray.Bytes
@@ -9,14 +13,12 @@
 --
 -- Simple and efficient byte array types
 --
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE UnboxedTuples #-}
 module Data.ByteArray.Bytes
     ( Bytes
     ) where
 
+import           Basement.NormalForm ( NormalForm (..) )
+import           Basement.IntegralConv ( IntegralUpsize (..) )
 #if MIN_VERSION_base(4,15,0)
 import           GHC.Exts (unsafeCoerce#)
 #endif
@@ -32,9 +34,6 @@ import           Data.Memory.Internal.Imports
 import           Data.Memory.Internal.CompatPrim
 import           Data.Memory.Internal.Compat      (unsafeDoIO)
 import           Data.ByteArray.Types
-
-import           Basement.NormalForm
-import           Basement.IntegralConv
 
 -- | Simplest Byte Array
 data Bytes = Bytes (MutableByteArray# RealWorld)

@@ -1,24 +1,25 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP                       #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude         #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE Rank2Types                #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+
 module Main where
 
-import           Imports
-import           Foundation.Check.Main
-import           Utils
-import           Data.Char                    (chr)
-import qualified Data.ByteString         as BS
-import           Data.ByteArray               (Bytes, ScrubbedBytes, ByteArray)
-import qualified Data.ByteArray          as B
+import           Basement.Block.Base ( Block )
+import           Basement.UArray.Base ( UArray )
+import qualified Data.ByteString as BS
+import           Data.ByteArray ( Bytes, ScrubbedBytes )
+import qualified Data.ByteArray as B
 import qualified Data.ByteArray.Encoding as B
-import qualified Data.ByteArray.Parse    as Parse
-
+import qualified Data.ByteArray.Parse as Parse
+import           Data.ByteArray.Types
+import           Data.Char ( chr )
+import           Foundation.Check.Main
+import           Imports hiding ( UArray )
 import qualified SipHash
-
-import           Basement.Block (Block)
+import           Utils
 
 newtype Positive = Positive Word
   deriving (Show, Eq, Ord)

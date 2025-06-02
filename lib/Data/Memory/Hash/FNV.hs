@@ -24,8 +24,8 @@ module Data.Memory.Hash.FNV
     , fnv1a_64
     ) where
 
-import           Basement.Bits
-import           Basement.IntegralConv
+import           Basement.Bits ( BitOps (..) )
+import           Basement.IntegralConv ( IntegralUpsize (..) )
 import           Data.Memory.Internal.Compat ()
 import           Data.Memory.Internal.Imports
 import           GHC.Word

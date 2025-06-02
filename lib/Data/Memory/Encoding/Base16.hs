@@ -23,8 +23,8 @@ module Data.Memory.Encoding.Base16
 
 import           Data.Memory.Internal.Compat
 import           Data.Word
-import           Basement.Bits
-import           Basement.IntegralConv
+import           Basement.Bits ( BitOps (..) )
+import           Basement.IntegralConv ( IntegralUpsize (..) )
 import           GHC.Prim
 import           GHC.Types
 import           GHC.Word
@@ -34,7 +34,7 @@ import           Foreign.Storable
 import           Foreign.Ptr (Ptr)
 
 -- | Transform a raw memory to an hexadecimal 'String'
--- 
+--
 -- user beware, no checks are made
 showHexadecimal :: (forall a . (Ptr Word8 -> IO a) -> IO a) -- ^ a 'with' type of function to hold reference to the object
                 -> Int    -- ^ length in bytes
@@ -139,7 +139,7 @@ fromHexadecimal dst src n
           where !(W# widx) = integralUpsize index
         rHi index = W8# (indexWord8OffAddr# tableHi (word2Int# widx))
           where !(W# widx) = integralUpsize index
-        
+
         !tableLo =
                 "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\
                  \\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\

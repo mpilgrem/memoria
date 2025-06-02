@@ -1,5 +1,9 @@
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE MagicHash    #-}
+{-# LANGUAGE Rank2Types   #-}
+
 -- |
--- Module      : Data.Memory.Encoding.Base32
+-- Module      : Data.Memory..Base32
 -- License     : BSD-style
 -- Maintainer  : Nicolas DI PRIMA <nicolas@di-prima.fr>
 -- Stability   : experimental
@@ -10,19 +14,16 @@
 -- If you just want to encode or decode some bytes, you probably want to use
 -- the "Data.ByteArray.Encoding" module.
 --
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE Rank2Types #-}
 module Data.Memory.Encoding.Base32
-    ( toBase32
-    , unBase32Length
-    , fromBase32
-    ) where
+  ( toBase32
+  , unBase32Length
+  , fromBase32
+  ) where
 
 import           Data.Memory.Internal.Compat
 import           Data.Word
-import           Basement.Bits
-import           Basement.IntegralConv
+import           Basement.Bits ( BitOps (..) )
+import           Basement.IntegralConv ( IntegralUpsize (..) )
 import           GHC.Prim
 import           GHC.Word
 import           Control.Monad
