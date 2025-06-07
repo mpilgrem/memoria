@@ -1,0 +1,126 @@
+spec-version: 0.36.0 # Avoid legacy behaviour of Hpack
+
+name:       memoria
+version:    0.18.1
+synopsis:   memory and related abstraction stuff
+copyright:  Vincent Hanquez <vincent@snarc.org>
+author:     Vincent Hanquez <vincent@snarc.org>
+maintainer: public@pilgrem.com
+category:   memory
+stability:  experimental
+github:     mpilgrem/memoria
+homepage:   https://github.com/mpilgrem/memoria
+
+description: |
+  Chunk of memory, polymorphic byte array management and manipulation
+
+  * A polymorphic byte array abstraction and function similar to strict ByteString.
+
+  * Different type of byte array abstraction.
+
+  * Raw memory IO operations (memory set, memory copy, ..)
+
+  * Aliasing with endianness support.
+
+  * Encoding : Base16, Base32, Base64.
+
+  * Hashing : FNV, SipHash
+
+extra-doc-files:
+- CHANGELOG.md
+- README.md
+
+flags:
+  support_bytestring:
+    description: add non-orphan bytearray support for bytestring
+    default: true
+    manual: true
+
+  support_deepseq:
+    description: add deepseq instances for memory types
+    default: true
+    manual: true
+
+library:
+  source-dirs: lib
+  exposed-modules:
+  - Data.ByteArray
+  - Data.ByteArray.Encoding
+  - Data.ByteArray.Mapping
+  - Data.ByteArray.Pack
+  - Data.ByteArray.Parse
+  - Data.ByteArray.Hash
+  - Data.Memory.Endian
+  - Data.Memory.PtrMethods
+  - Data.Memory.ExtendedWords
+  - Data.Memory.Encoding.Base16
+  - Data.Memory.Encoding.Base32
+  - Data.Memory.Encoding.Base64
+  when:
+  - condition: impl(ghc < 8.8)
+    then:
+      buildable: false
+    else:
+      dependencies:
+      - base
+      - ghc-prim
+  # FIXME armel or mispel is also little endian.
+  # might be a good idea to also add a runtime autodetect mode.
+  # ARCH_ENDIAN_UNKNOWN
+  - condition: arch(i386) || arch(x86_64)
+    cpp-options: -DARCH_IS_LITTLE_ENDIAN
+  - condition: os(windows)
+    then:
+      other-modules: Data.Memory.MemMap.Windows
+    else:
+      other-modules: Data.Memory.MemMap.Posix
+  # optional support bytearray instance for bytestring
+  - condition: flag(support_bytestring)
+    cpp-options: -DWITH_BYTESTRING_SUPPORT
+    dependencies:
+    - bytestring
+  - condition: flag(support_deepseq)
+    cpp-options: -DWITH_DEEPSEQ_SUPPORT
+    dependencies:
+    - deepseq >= 1.1
+  dependencies: basement >= 0.0.7
+  ghc-options:
+  - -Wall
+  - -fwarn-tabs
+
+tests:
+  test-memory:
+    source-dirs: tests
+    main: Tests.hs
+    other-modules:
+    - Imports
+    - SipHash
+    - Utils
+    when:
+    - condition: impl(ghc < 8.8)
+      then:
+        buildable: false
+      else:
+        dependencies:
+        - base
+    dependencies:
+    - basement >= 0.0.7
+    - bytestring
+    - foundation
+    - memoria
+    ghc-options:
+    - -Wall
+    - -fno-warn-orphans
+    - -fno-warn-missing-signatures
+    - -threaded
+
+# test-examples:
+#   source-dirs: tests
+#   main: DocTests.hs
+#   dependencies:
+#   - base >= 3 && < 5
+#   - bytestring
+#   - doctest
+#   - memory
+#   ghc-options:
+#   - -threaded
