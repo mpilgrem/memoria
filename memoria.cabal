@@ -1,129 +1,130 @@
-Name:                memoria
-version:             0.18.1
-Synopsis:            memory and related abstraction stuff
-Description:
-    Chunk of memory, polymorphic byte array management and manipulation
-    .
-    * A polymorphic byte array abstraction and function similar to strict ByteString.
-    .
-    * Different type of byte array abstraction.
-    .
-    * Raw memory IO operations (memory set, memory copy, ..)
-    .
-    * Aliasing with endianness support.
-    .
-    * Encoding : Base16, Base32, Base64.
-    .
-    * Hashing : FNV, SipHash
-License:             BSD3
-License-file:        LICENSE
-Copyright:           Vincent Hanquez <vincent@snarc.org>
-Author:              Vincent Hanquez <vincent@snarc.org>
-Maintainer:          public@pilgrem.com
-Category:            memory
-Stability:           experimental
-Build-Type:          Simple
-Homepage:            https://github.com/mpilgrem/memoria
-Bug-Reports:         https://github.com/mpilgrem/memoria/issues
-cabal-version:       1.18
-extra-doc-files:     README.md CHANGELOG.md
+cabal-version: 1.18
+
+-- This file has been generated from package.yaml by hpack version 0.38.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           memoria
+version:        0.18.1
+synopsis:       memory and related abstraction stuff
+description:    Chunk of memory, polymorphic byte array management and manipulation
+                .
+                * A polymorphic byte array abstraction and function similar to strict ByteString.
+                .
+                * Different type of byte array abstraction.
+                .
+                * Raw memory IO operations (memory set, memory copy, ..)
+                .
+                * Aliasing with endianness support.
+                .
+                * Encoding : Base16, Base32, Base64.
+                .
+                * Hashing : FNV, SipHash
+category:       memory
+stability:      experimental
+homepage:       https://github.com/mpilgrem/memoria
+bug-reports:    https://github.com/mpilgrem/memoria/issues
+author:         Vincent Hanquez <vincent@snarc.org>
+maintainer:     public@pilgrem.com
+copyright:      Vincent Hanquez <vincent@snarc.org>
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-doc-files:
+    CHANGELOG.md
+    README.md
 
 source-repository head
   type: git
   location: https://github.com/mpilgrem/memoria
 
-Flag support_bytestring
-  Description:       add non-orphan bytearray support for bytestring
-  Default:           True
-  Manual:            True
+flag support_bytestring
+  description: add non-orphan bytearray support for bytestring
+  manual: True
+  default: True
 
-Flag support_deepseq
-  Description:       add deepseq instances for memory types
-  Default:           True
-  Manual:            True
+flag support_deepseq
+  description: add deepseq instances for memory types
+  manual: True
+  default: True
 
-Library
-  hs-source-dirs:    lib
-  Exposed-modules:   Data.ByteArray
-                     Data.ByteArray.Encoding
-                     Data.ByteArray.Mapping
-                     Data.ByteArray.Pack
-                     Data.ByteArray.Parse
-                     Data.ByteArray.Hash
-                     Data.Memory.Endian
-                     Data.Memory.PtrMethods
-                     Data.Memory.ExtendedWords
-                     Data.Memory.Encoding.Base16
-                     Data.Memory.Encoding.Base32
-                     Data.Memory.Encoding.Base64
-  Other-modules:     Data.Memory.Internal.Compat
-                     Data.Memory.Internal.CompatPrim
-                     Data.Memory.Internal.CompatPrim64
-                     Data.Memory.Internal.DeepSeq
-                     Data.Memory.Internal.Imports
-                     Data.Memory.Hash.SipHash
-                     Data.Memory.Hash.FNV
-                     Data.ByteArray.Pack.Internal
-                     Data.ByteArray.Types
-                     Data.ByteArray.Bytes
-                     Data.ByteArray.ScrubbedBytes
-                     Data.ByteArray.Methods
-                     Data.ByteArray.MemView
-                     Data.ByteArray.View
+library
+  exposed-modules:
+      Data.ByteArray
+      Data.ByteArray.Encoding
+      Data.ByteArray.Mapping
+      Data.ByteArray.Pack
+      Data.ByteArray.Parse
+      Data.ByteArray.Hash
+      Data.Memory.Endian
+      Data.Memory.PtrMethods
+      Data.Memory.ExtendedWords
+      Data.Memory.Encoding.Base16
+      Data.Memory.Encoding.Base32
+      Data.Memory.Encoding.Base64
+  other-modules:
+      Data.ByteArray.Bytes
+      Data.ByteArray.MemView
+      Data.ByteArray.Methods
+      Data.ByteArray.Pack.Internal
+      Data.ByteArray.ScrubbedBytes
+      Data.ByteArray.Sized
+      Data.ByteArray.Types
+      Data.ByteArray.View
+      Data.Memory.Hash.FNV
+      Data.Memory.Hash.SipHash
+      Data.Memory.Internal.Compat
+      Data.Memory.Internal.CompatPrim
+      Data.Memory.Internal.CompatPrim64
+      Data.Memory.Internal.DeepSeq
+      Data.Memory.Internal.Imports
+  hs-source-dirs:
+      lib
+  ghc-options: -Wall -fwarn-tabs
+  build-depends:
+      basement >=0.0.7
+  default-language: Haskell2010
   if impl(ghc < 8.8)
     buildable: False
   else
-    build-depends:   base
-                   , ghc-prim
-  -- FIXME armel or mispel is also little endian.
-  -- might be a good idea to also add a runtime autodetect mode.
-  -- ARCH_ENDIAN_UNKNOWN
-  if (arch(i386) || arch(x86_64))
-    CPP-options:     -DARCH_IS_LITTLE_ENDIAN
+    build-depends:
+        base
+      , ghc-prim
+  if arch(i386) || arch(x86_64)
+    cpp-options: -DARCH_IS_LITTLE_ENDIAN
   if os(windows)
-    Other-modules:   Data.Memory.MemMap.Windows
+    other-modules:
+        Data.Memory.MemMap.Windows
   else
-    Other-modules:   Data.Memory.MemMap.Posix
-
-  -- optional support bytearray instance for bytestring
+    other-modules:
+        Data.Memory.MemMap.Posix
   if flag(support_bytestring)
-    CPP-options:     -DWITH_BYTESTRING_SUPPORT
-    Build-depends:   bytestring
+    cpp-options: -DWITH_BYTESTRING_SUPPORT
+    build-depends:
+        bytestring
   if flag(support_deepseq)
-    CPP-options:     -DWITH_DEEPSEQ_SUPPORT
-    Build-depends:   deepseq >= 1.1
+    cpp-options: -DWITH_DEEPSEQ_SUPPORT
+    build-depends:
+        deepseq >=1.1
 
-  Build-depends:   basement >= 0.0.7
-  exposed-modules: Data.ByteArray.Sized
-
-  ghc-options:       -Wall -fwarn-tabs
-  default-language:  Haskell2010
-
-Test-Suite test-memory
-  type:              exitcode-stdio-1.0
-  hs-source-dirs:    tests
-  Main-is:           Tests.hs
-  Other-modules:     Imports
-                     SipHash
-                     Utils
+test-suite test-memory
+  type: exitcode-stdio-1.0
+  main-is: Tests.hs
+  other-modules:
+      Imports
+      SipHash
+      Utils
+  hs-source-dirs:
+      tests
+  ghc-options: -Wall -fno-warn-orphans -fno-warn-missing-signatures -threaded
+  build-depends:
+      basement >=0.0.7
+    , bytestring
+    , foundation
+    , memoria
+  default-language: Haskell2010
   if impl(ghc < 8.8)
     buildable: False
   else
-    build-depends:   base
-  Build-Depends:     bytestring
-                   , memoria
-                   , basement >= 0.0.7
-                   , foundation
-  ghc-options:       -Wall -fno-warn-orphans -fno-warn-missing-signatures -threaded
-  default-language:  Haskell2010
-
--- Test-Suite test-examples
---   default-language:  Haskell2010
---   type:              exitcode-stdio-1.0
---   hs-source-dirs:    tests
---   ghc-options:       -threaded
---   Main-is:           DocTests.hs
---   Build-Depends:     base >= 3 && < 5
---                    , memory
---                    , bytestring
---                    , doctest
+    build-depends:
+        base
