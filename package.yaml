@@ -45,16 +45,16 @@ library:
   exposed-modules:
   - Data.ByteArray
   - Data.ByteArray.Encoding
+  - Data.ByteArray.Hash
   - Data.ByteArray.Mapping
   - Data.ByteArray.Pack
   - Data.ByteArray.Parse
-  - Data.ByteArray.Hash
-  - Data.Memory.Endian
-  - Data.Memory.PtrMethods
-  - Data.Memory.ExtendedWords
   - Data.Memory.Encoding.Base16
   - Data.Memory.Encoding.Base32
   - Data.Memory.Encoding.Base64
+  - Data.Memory.Endian
+  - Data.Memory.ExtendedWords
+  - Data.Memory.PtrMethods
   when:
   - condition: impl(ghc < 8.8)
     then:

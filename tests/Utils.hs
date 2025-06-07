@@ -1,11 +1,9 @@
-{-# LANGUAGE CPP #-}
 module Utils where
 
-import           Data.Word
-import           Data.ByteArray               (Bytes, ScrubbedBytes)
-
-import           Basement.Block (Block)
-import           Basement.UArray (UArray)
+import           Basement.Block ( Block )
+import           Basement.UArray ( UArray )
+import           Data.ByteArray ( Bytes, ScrubbedBytes )
+import           Data.Word ( Word8 )
 
 unS :: String -> [Word8]
 unS = map (fromIntegral . fromEnum)
