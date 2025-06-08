@@ -9,6 +9,8 @@ and this project adheres to the
 ## UNRELEASED
 
 * Rename `memory` package as `memoria`.
+* Change testing framework from `foundation` to `tasty` (with providers
+  `tasty-quickcheck` and `tasty-hunit`).
 
 ## 0.18
 

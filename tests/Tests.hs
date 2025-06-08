@@ -7,86 +7,101 @@
 module Main where
 
 import           Basement.Block ( Block )
+import           Basement.UArray ( UArray )
+import           Control.Monad ( replicateM )
 import qualified Data.ByteString as BS
 import           Data.ByteArray ( ByteArray, Bytes, ScrubbedBytes )
 import qualified Data.ByteArray as B
 import qualified Data.ByteArray.Encoding as B
 import qualified Data.ByteArray.Parse as Parse
 import           Data.Char ( chr )
-import           Foundation.Check.Main
-import           Imports
+import           Data.Int ( Int, Int16, Int32, Int64, Int8 )
+import           Data.Typeable ( Typeable )
+import           Data.Word ( Word, Word8 )
+import           Prelude
+                   ( Applicative (..), Bool (..), Bounded (..), Either (..)
+                   , Enum (..), Eq (..), Functor (..), IO, Monad (..)
+                   , Monoid (..), Ord (..), Show (..), String, ($), (.), (<$>)
+                   , all, any, concatMap, const, fromIntegral, replicate
+                   , reverse, snd, zip
+                   )
 import qualified SipHash
+import           Test.Tasty ( TestTree, defaultMain, testGroup )
+import qualified Test.Tasty.HUnit as HU
+import qualified Test.Tasty.QuickCheck as QC
 import           Utils
 
 newtype Positive = Positive Word
   deriving (Eq, Ord, Show)
 
-instance Arbitrary Positive where
-  arbitrary = Positive <$> between (0, 255)
+instance QC.Arbitrary Positive where
+  arbitrary = Positive <$> QC.choose (0, 255)
 
 data Backend = BackendByte | BackendScrubbedBytes
   | BackendBlock
   | BackendUArray
   deriving (Bounded, Enum, Eq, Show)
 
-allBackends :: NonEmpty [Backend]
-allBackends = nonEmpty_ $ enumFrom BackendByte
+allBackends :: QC.NonEmptyList Backend
+allBackends = QC.NonEmpty $ enumFrom BackendByte
 
 data ArbitraryBS = forall a . ByteArray a => ArbitraryBS a
 
-arbitraryBS :: Word -> Gen ArbitraryBS
+arbitraryBS :: Word -> QC.Gen ArbitraryBS
 arbitraryBS n = do
-  backend <- elements allBackends
+  backend <- QC.elements $ QC.getNonEmpty allBackends
   case backend of
-    BackendByte          -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen Bytes)
-    BackendScrubbedBytes -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen ScrubbedBytes)
-    BackendBlock         -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen (Block Word8))
-    BackendUArray        -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) arbitrary) :: Gen (UArray Word8))
+    BackendByte          -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) QC.arbitrary) :: QC.Gen Bytes)
+    BackendScrubbedBytes -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) QC.arbitrary) :: QC.Gen ScrubbedBytes)
+    BackendBlock         -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) QC.arbitrary) :: QC.Gen (Block Word8))
+    BackendUArray        -> ArbitraryBS `fmap` ((B.pack `fmap` replicateM (fromIntegral n) QC.arbitrary) :: QC.Gen (UArray Word8))
 
-arbitraryBSof :: Word -> Word -> Gen ArbitraryBS
-arbitraryBSof minBytes maxBytes = between (minBytes, maxBytes) >>= arbitraryBS
+arbitraryBSof :: Word -> Word -> QC.Gen ArbitraryBS
+arbitraryBSof minBytes maxBytes = QC.choose (minBytes, maxBytes) >>= arbitraryBS
 
 newtype SmallList a = SmallList [a]
   deriving (Eq, Show)
 
-instance Arbitrary a => Arbitrary (SmallList a) where
-  arbitrary = between (0,8) >>= \n -> SmallList `fmap` replicateM (fromIntegral n) arbitrary
+instance QC.Arbitrary a => QC.Arbitrary (SmallList a) where
+  arbitrary = QC.chooseInt (0,8) >>= \n -> SmallList `fmap` replicateM (fromIntegral n) QC.arbitrary
 
-instance Arbitrary ArbitraryBS where
+instance QC.Arbitrary ArbitraryBS where
   arbitrary = arbitraryBSof 0 259
 
 newtype Words8 = Words8 { unWords8 :: [Word8] }
   deriving (Eq, Show)
 
-instance Arbitrary Words8 where
-  arbitrary = between (0, 259) >>= \n -> Words8 <$> replicateM (fromIntegral n) arbitrary
+instance QC.Arbitrary Words8 where
+  arbitrary = QC.chooseInt (0, 259) >>= \n -> Words8 <$> replicateM (fromIntegral n) QC.arbitrary
 
 testGroupBackends ::
-     String -> (forall ba . (Show ba, Eq ba, Typeable ba, ByteArray ba)
-  => (ba -> ba) -> [Test]) -> Test
+     String
+  -> (forall ba . (Show ba, Eq ba, Typeable ba, ByteArray ba) => (ba -> ba)
+  -> [TestTree])
+  -> TestTree
 testGroupBackends x l =
-  Group x
-    [ Group "Bytes" (l withBytesWitness)
-    , Group "ScrubbedBytes" (l withScrubbedBytesWitness)
-    , Group "Block" (l withBlockWitness)
-    , Group "UArray" (l withUArrayWitness)
+  testGroup x
+    [ testGroup "Bytes" (l withBytesWitness)
+    , testGroup "ScrubbedBytes" (l withScrubbedBytesWitness)
+    , testGroup "Block" (l withBlockWitness)
+    , testGroup "UArray" (l withUArrayWitness)
     ]
 
 testShowProperty ::
-     IsProperty a
+     QC.Testable a
   => String
   -> (forall ba . (Show ba, Eq ba, Typeable ba, ByteArray ba) => (ba -> ba) -> ([Word8] -> String) -> a)
-  -> Test
+  -> TestTree
 testShowProperty x p =
-  Group x
-    [ Property "Bytes" (p withBytesWitness showLikeString)
-    , Property "ScrubbedBytes" (p withScrubbedBytesWitness showLikeEmptySB)
+  testGroup x
+    [ QC.testProperty "Bytes" (p withBytesWitness showLikeString)
+    , QC.testProperty "ScrubbedBytes" (p withScrubbedBytesWitness showLikeEmptySB)
     ]
  where
   showLikeString  l = show $ chr . fromIntegral <$> l
   showLikeEmptySB _ = show (withScrubbedBytesWitness B.empty)
 
-base64Kats :: [(LString, LString)]
+base64Kats :: [(String, String)]
 base64Kats =
   [ ("pleasure.", "cGxlYXN1cmUu")
   , ("leasure.", "bGVhc3VyZS4=")
@@ -96,7 +111,7 @@ base64Kats =
   , ("", "")
   ]
 
-base64URLKats :: [(LString, LString)]
+base64URLKats :: [(String, String)]
 base64URLKats =
   [ ("pleasure.", "cGxlYXN1cmUu")
   , ("leasure.", "bGVhc3VyZS4")
@@ -108,11 +123,11 @@ base64URLKats =
   , ("", "")
   ]
 
-base16Kats :: [(LString, LString)]
+base16Kats :: [(String, String)]
 base16Kats =
   [ ("this is a string", "74686973206973206120737472696e67") ]
 
-base32Kats :: [(LString, LString)]
+base32Kats :: [(String, String)]
 base32Kats =
   [ ("-pleasure.", "FVYGYZLBON2XEZJO")
   , ("pleasure.",  "OBWGKYLTOVZGKLQ=")
@@ -130,23 +145,23 @@ base32Kats =
 encodingTests ::
      (Show bin, Typeable bin, ByteArray bin, ByteArray t)
   => (t -> bin)
-  -> [Test]
+  -> [TestTree]
 encodingTests witnessID =
-  [ Group "BASE64"
-      [ Group "encode-KAT" encodeKats64
-      , Group "decode-KAT" decodeKats64
+  [ testGroup "BASE64"
+      [ testGroup "encode-KAT" encodeKats64
+      , testGroup "decode-KAT" decodeKats64
       ]
-  , Group "BASE64URL"
-      [ Group "encode-KAT" encodeKats64URLUnpadded
-      , Group "decode-KAT" decodeKats64URLUnpadded
+  , testGroup "BASE64URL"
+      [ testGroup "encode-KAT" encodeKats64URLUnpadded
+      , testGroup "decode-KAT" decodeKats64URLUnpadded
       ]
-  , Group "BASE32"
-      [ Group "encode-KAT" encodeKats32
-      , Group "decode-KAT" decodeKats32
+  , testGroup "BASE32"
+      [ testGroup "encode-KAT" encodeKats32
+      , testGroup "decode-KAT" decodeKats32
       ]
-  , Group "BASE16"
-      [ Group "encode-KAT" encodeKats16
-      , Group "decode-KAT" decodeKats16
+  , testGroup "BASE16"
+      [ testGroup "encode-KAT" encodeKats16
+      , testGroup "decode-KAT" decodeKats16
       ]
   ]
  where
@@ -159,63 +174,64 @@ encodingTests witnessID =
   encodeKats64URLUnpadded = toTest B.Base64URLUnpadded <$> zip [1..] base64URLKats
   decodeKats64URLUnpadded = toBackTest B.Base64URLUnpadded <$> zip [1..] base64URLKats
 
-  toTest :: B.Base -> (Int, (LString, LString)) -> Test
-  toTest base (i, (inp, out)) = Property (show i) $
+  toTest :: B.Base -> (Int, (String, String)) -> TestTree
+  toTest base (i, (inp, out)) = QC.testProperty (show i) $
     let inpbs = witnessID $ B.convertToBase base $ witnessID $ B.pack $ unS inp
         outbs = witnessID $ B.pack $ unS out
-    in  outbs === inpbs
-  toBackTest :: B.Base -> (Int, (LString, LString)) -> Test
-  toBackTest base (i, (inp, out)) = Property (show i) $
+    in  outbs QC.=== inpbs
+  toBackTest :: B.Base -> (Int, (String, String)) -> TestTree
+  toBackTest base (i, (inp, out)) = QC.testProperty (show i) $
     let inpbs = witnessID $ B.pack $ unS inp
         outbs = B.convertFromBase base $ witnessID $ B.pack $ unS out
-    in  Right inpbs === outbs
+    in  Right inpbs QC.=== outbs
 
 -- check not to touch internal null pointer of the empty ByteString
-bsNullEncodingTest :: Test
+bsNullEncodingTest :: TestTree
 bsNullEncodingTest =
-  Group "BS-null"
-    [ Group "BASE64"
-      [ Property "encode-KAT" $ toTest B.Base64
-      , Property "decode-KAT" $ toBackTest B.Base64
+  testGroup "BS-null"
+    [ testGroup "BASE64"
+      [ QC.testProperty "encode-KAT" $ toTest B.Base64
+      , QC.testProperty "decode-KAT" $ toBackTest B.Base64
       ]
-    , Group "BASE32"
-      [ Property "encode-KAT" $ toTest B.Base32
-      , Property "decode-KAT" $ toBackTest B.Base32
+    , testGroup "BASE32"
+      [ QC.testProperty "encode-KAT" $ toTest B.Base32
+      , QC.testProperty "decode-KAT" $ toBackTest B.Base32
       ]
-    , Group "BASE16"
-      [ Property "encode-KAT" $ toTest B.Base16
-      , Property "decode-KAT" $ toBackTest B.Base16
+    , testGroup "BASE16"
+      [ QC.testProperty "encode-KAT" $ toTest B.Base16
+      , QC.testProperty "decode-KAT" $ toBackTest B.Base16
       ]
     ]
  where
   toTest base =
-    B.convertToBase base BS.empty === BS.empty
+    B.convertToBase base BS.empty QC.=== BS.empty
   toBackTest base =
-    B.convertFromBase base BS.empty === Right BS.empty
+    B.convertFromBase base BS.empty QC.=== Right BS.empty
+
 
 parsingTests ::
      (Typeable t1, ByteArray t2, ByteArray t1, Show t1)
   => (t2 -> t1)
-  -> [Test]
+  -> [TestTree]
 parsingTests witnessID =
-  [ CheckPlan "parse" $
+  [ HU.testCase "parse" $
       let input = witnessID $ B.pack $ unS "xx abctest"
           abc   = witnessID $ B.pack $ unS "abc"
           est   = witnessID $ B.pack $ unS "est"
           result = Parse.parse ((,,) <$> Parse.take 2 <*> Parse.byte 0x20 <*> (Parse.bytes abc *> Parse.anyByte)) input
       in  case result of
-            Parse.ParseOK remaining (_,_,_) -> validate "remaining" $ est === remaining
-            _                               -> validate "unexpected result" False
+            Parse.ParseOK remaining (_,_,_) -> HU.assertEqual "remaining" est remaining
+            _                               -> HU.assertFailure "unexpected result"
   ]
 
 main :: IO ()
-main = defaultMain $ Group "memory"
+main = defaultMain $ testGroup "memoria"
   [ testGroupBackends "basic" basicProperties
   , bsNullEncodingTest
   , testGroupBackends "encoding" encodingTests
   , testGroupBackends "parsing" parsingTests
   , testGroupBackends "hashing" $ \witnessID ->
-      [ Group "SipHash" $ SipHash.tests witnessID
+      [ testGroup "SipHash" $ SipHash.tests witnessID
       ]
   , testShowProperty "showing" $ \witnessID expectedShow (Words8 l) ->
         (show . witnessID . B.pack $ l) == expectedShow l
@@ -223,69 +239,69 @@ main = defaultMain $ Group "memory"
   ]
  where
   basicProperties witnessID =
-    [ Property "unpack . pack == id" $ \(Words8 l) -> l == (B.unpack . witnessID . B.pack $ l)
-    , Property "self-eq" $ \(Words8 l) -> let b = witnessID . B.pack $ l in b == b
-    , Property "add-empty-eq" $ \(Words8 l) ->
+    [ QC.testProperty "unpack . pack == id" $ \(Words8 l) -> l == (B.unpack . witnessID . B.pack $ l)
+    , QC.testProperty "self-eq" $ \(Words8 l) -> let b = witnessID . B.pack $ l in b == b
+    , QC.testProperty "add-empty-eq" $ \(Words8 l) ->
         let b = witnessID $ B.pack l
         in  B.append b B.empty == b
-    , Property "zero" $ \(Positive n) ->
+    , QC.testProperty "zero" $ \(Positive n) ->
         let expected = witnessID $ B.pack $ replicate (fromIntegral n) 0
         in  expected == B.zero (fromIntegral n)
-    , Property "Ord" $ \(Words8 l1) (Words8 l2) ->
+    , QC.testProperty "Ord" $ \(Words8 l1) (Words8 l2) ->
         compare l1 l2 == compare (witnessID $ B.pack l1) (B.pack l2)
-    , Property "Monoid(mappend)" $ \(Words8 l1) (Words8 l2) ->
+    , QC.testProperty "Monoid(mappend)" $ \(Words8 l1) (Words8 l2) ->
         mappend l1 l2 == B.unpack ( mappend (witnessID $ B.pack l1) (B.pack l2))
-    , Property "Monoid(mconcat)" $ \(SmallList l) ->
+    , QC.testProperty "Monoid(mconcat)" $ \(SmallList l) ->
         mconcat (fmap unWords8 l) == B.unpack ( mconcat $ fmap (witnessID . B.pack . unWords8) l)
-    , Property "append (append a b) c == append a (append b c)" $ \(Words8 la) (Words8 lb) (Words8 lc) ->
+    , QC.testProperty "append (append a b) c == append a (append b c)" $ \(Words8 la) (Words8 lb) (Words8 lc) ->
         let a = witnessID $ B.pack la
             b = witnessID $ B.pack lb
             c = witnessID $ B.pack lc
         in  B.append (B.append a b) c == B.append a (B.append b c)
-    , Property "concat l" $ \(SmallList l) ->
+    , QC.testProperty "concat l" $ \(SmallList l) ->
         let chunks   = fmap (witnessID . B.pack . unWords8) l
             expected = concatMap unWords8 l
         in  B.pack expected == witnessID (B.concat chunks)
-    , Property "reverse" $ \(Words8 l) ->
+    , QC.testProperty "reverse" $ \(Words8 l) ->
         let b = witnessID (B.pack l)
         in  reverse l == B.unpack (B.reverse b)
-    , Property "cons b (reverse bs) == reverse (snoc bs b)" $ \(Words8 l) b ->
+    , QC.testProperty "cons b (reverse bs) == reverse (snoc bs b)" $ \(Words8 l) b ->
         let a = witnessID (B.pack l)
         in  B.cons b (B.reverse a) == B.reverse (B.snoc a b)
-    , Property "all == Prelude.all" $ \(Words8 l) b ->
+    , QC.testProperty "all == Prelude.all" $ \(Words8 l) b ->
         let b1 = witnessID (B.pack l)
             p  = (/= b)
         in  B.all p b1 == all p l
-    , Property "any == Prelude.any" $ \(Words8 l) b ->
+    , QC.testProperty "any == Prelude.any" $ \(Words8 l) b ->
         let b1 = witnessID (B.pack l)
             p  = (== b)
         in  B.any p b1 == any p l
-    , Property "singleton b == pack [b]" $ \b ->
+    , QC.testProperty "singleton b == pack [b]" $ \b ->
         witnessID (B.singleton b) == B.pack [b]
-    , Property "span" $ \x (Words8 l) ->
+    , QC.testProperty "span" $ \x (Words8 l) ->
         let c = witnessID (B.pack l)
             (a, b) = B.span (== x) c
         in  c == B.append a b
-    , Property "span (const True)" $ \(Words8 l) ->
+    , QC.testProperty "span (const True)" $ \(Words8 l) ->
         let a = witnessID (B.pack l)
         in  B.span (const True) a == (a, B.empty)
-    , Property "span (const False)" $ \(Words8 l) ->
+    , QC.testProperty "span (const False)" $ \(Words8 l) ->
         let b = witnessID (B.pack l)
         in  B.span (const False) b == (B.empty, b)
     ]
 
-testFoundationTypes :: Test
-testFoundationTypes = Group "Basement"
-  [ CheckPlan "allocRet 4 _ :: UArray Int8 === 4" $ do
-      x <- pick "allocateRet 4 _" $ (B.length :: UArray Int8 -> Int) . snd <$> B.allocRet 4 (const $ return ())
-      validate "4 === x" $ x === 4
-  , CheckPlan "allocRet 4 _ :: UArray Int16 === 4" $ do
-      x <- pick "allocateRet 4 _" $ (B.length :: UArray Int16 -> Int) . snd <$> B.allocRet 4 (const $ return ())
-      validate "4 === x" $ x === 4
-  , CheckPlan "allocRet 4 _ :: UArray Int32 === 4" $ do
-      x <- pick "allocateRet 4 _" $ (B.length :: UArray Int32 -> Int) . snd <$> B.allocRet 4 (const $ return ())
-      validate "4 === x" $ x === 4
-  , CheckPlan "allocRet 4 _ :: UArray Int64 === 8" $ do
-      x <- pick "allocateRet 4 _" $ (B.length :: UArray Int64 -> Int) . snd <$> B.allocRet 4 (const $ return ())
-      validate "8 === x" $ x === 8
+testFoundationTypes :: TestTree
+testFoundationTypes = testGroup "Basement"
+  [ HU.testCase "allocRet 4 _ :: UArray Int8 === 4" $ do
+      x <- (B.length :: UArray Int8 -> Int) . snd <$> B.allocRet 4 (const $ pure ())
+      HU.assertEqual "4 === x" x 4
+  , HU.testCase "allocRet 4 _ :: UArray Int16 === 4" $ do
+      x <- (B.length :: UArray Int16 -> Int) . snd <$> B.allocRet 4 (const $ pure ())
+      HU.assertEqual "4 === x" x 4
+  , HU.testCase "allocRet 4 _ :: UArray Int32 === 4" $ do
+      x <- (B.length :: UArray Int32 -> Int) . snd <$> B.allocRet 4 (const $ pure ())
+      HU.assertEqual "4 === x" x 4
+  , HU.testCase "allocRet 4 _ :: UArray Int64 === 8" $ do
+      x <- (B.length :: UArray Int64 -> Int) . snd <$> B.allocRet 4 (const $ pure ())
+      HU.assertEqual "8 === x" x 8
   ]
