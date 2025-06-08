@@ -107,24 +107,24 @@ library
     build-depends:
         deepseq >=1.1
 
-test-suite test-memory
+test-suite test-memoria
   type: exitcode-stdio-1.0
   main-is: Tests.hs
   other-modules:
-      Imports
       SipHash
       Utils
   hs-source-dirs:
       tests
   ghc-options: -Wall -fno-warn-orphans -fno-warn-missing-signatures -threaded
   build-depends:
-      basement >=0.0.7
+      QuickCheck >=2.14
+    , base
+    , basement >=0.0.7
     , bytestring
-    , foundation
     , memoria
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
   default-language: Haskell2010
   if impl(ghc < 8.8)
     buildable: False
-  else
-    build-depends:
-        base

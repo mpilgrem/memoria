@@ -88,25 +88,24 @@ library:
   - -fwarn-tabs
 
 tests:
-  test-memory:
+  test-memoria:
     source-dirs: tests
     main: Tests.hs
     other-modules:
-    - Imports
     - SipHash
     - Utils
     when:
     - condition: impl(ghc < 8.8)
-      then:
-        buildable: false
-      else:
-        dependencies:
-        - base
+      buildable: false
     dependencies:
+    - base
+    - QuickCheck >= 2.14
     - basement >= 0.0.7
     - bytestring
-    - foundation
     - memoria
+    - tasty
+    - tasty-hunit
+    - tasty-quickcheck
     ghc-options:
     - -Wall
     - -fno-warn-orphans

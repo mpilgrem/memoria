@@ -6,9 +6,11 @@ module SipHash
   ) where
 
 import qualified Data.ByteArray as B
-import           Data.ByteArray.Hash ( SipHash(..), SipKey(..), sipHash )
+import           Data.ByteArray.Hash ( SipHash (..), SipKey (..), sipHash )
 import           Data.String ( String )
-import           Imports hiding ( String )
+import           Prelude ( Semigroup (..), Show (..), ($), (<$>) )
+import           Test.Tasty ( TestTree, testGroup )
+import qualified Test.Tasty.QuickCheck as QC
 import           Utils
 
 katKey :: SipKey
@@ -278,12 +280,12 @@ katTests ::
      (B.ByteArray t, B.ByteArrayAccess ba)
   => (t -> ba)
   -> [(SipKey, String, SipHash)]
-  -> [Test]
+  -> [TestTree]
 katTests witnessID v = makeTest <$> numberedList v
  where
-  makeTest (i, (key,msg,tag)) = Property ("kat " <> show i) $ tag === sipHash key (witnessID $ B.pack $ unS msg)
+  makeTest (i, (key,msg,tag)) = QC.testProperty ("kat " <> show i) $ tag QC.=== sipHash key (witnessID $ B.pack $ unS msg)
 
-tests :: (B.ByteArray t, B.ByteArrayAccess ba) => (t -> ba) -> [Test]
+tests :: (B.ByteArray t, B.ByteArrayAccess ba) => (t -> ba) -> [TestTree]
 tests witnessID =
-  [ Group "KAT" $ katTests witnessID vectors
+  [ testGroup "KAT" $ katTests witnessID vectors
   ]
